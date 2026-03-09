@@ -1,42 +1,35 @@
 pipeline {
     agent any
-
     environment {
-        REPO_URL = 'https://github.com/vetryselvan1307-design/medusa.git'
         APP_NAME = 'medusa-app'
-        PORT = '9000'
     }
-
     stages {
-        stage('Clone Repository') {
+        stage('Checkout Latest Code') {
             steps {
-                git branch: 'main', url: "${REPO_URL}"
+                git branch: 'main', url: 'https://github.com/vetryselvan1307-design/medusa.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Stop Old Containers') {
             steps {
                 dir('my-medusa-store') {
-                    sh "docker build -t ${APP_NAME} ."
+                    sh 'docker-compose down || true'
                 }
             }
         }
 
-        stage('Stop Existing Container') {
+        stage('Build New Images') {
             steps {
                 dir('my-medusa-store') {
-                    sh """
-                    docker stop ${APP_NAME} || true
-                    docker rm ${APP_NAME} || true
-                    """
+                    sh 'docker-compose build'
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Deploy New Version') {
             steps {
                 dir('my-medusa-store') {
-                    sh "docker run -d -p ${PORT}:9000 --name ${APP_NAME} ${APP_NAME}"
+                    sh 'docker-compose up -d'
                 }
             }
         }
@@ -44,10 +37,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful!"
+            echo 'Deployment successful!'
         }
         failure {
-            echo "Deployment failed!"
+            echo 'Deployment failed!'
         }
     }
 }
