@@ -1,11 +1,10 @@
 pipeline {
     agent any
-
     environment {
         REPO_URL = 'https://github.com/vetryselvan1307-design/medusa.git'
-        PROJECT_ROOT = "${WORKSPACE}"  // root folder in Jenkins
+        PORT_BACKEND = '9000'
+        PORT_FRONTEND = '8000'
     }
-
     stages {
         stage('Checkout Latest Code') {
             steps {
@@ -15,35 +14,29 @@ pipeline {
 
         stage('Stop Old Containers') {
             steps {
-                dir("${PROJECT_ROOT}") {
-                    sh 'docker-compose down'
-                }
+                sh 'docker-compose down'
             }
         }
 
         stage('Build New Images') {
             steps {
-                dir("${PROJECT_ROOT}") {
-                    sh 'docker-compose build'
-                }
+                sh 'docker-compose build'
             }
         }
 
         stage('Deploy New Version') {
             steps {
-                dir("${PROJECT_ROOT}") {
-                    sh 'docker-compose up -d'
-                }
+                sh 'docker-compose up -d'
             }
         }
     }
 
     post {
         success {
-            echo "Deployment successful!"
+            echo 'Deployment successful!'
         }
         failure {
-            echo "Deployment failed!"
+            echo 'Deployment failed!'
         }
     }
 }
