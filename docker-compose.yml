@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -24,7 +26,7 @@ services:
       - medusa_network
 
   medusa:
-    build: .
+    build: ./my-medusa-store
     container_name: medusa_backend
     restart: unless-stopped
     depends_on:
@@ -32,31 +34,30 @@ services:
       - redis
     ports:
       - "9000:9000"
-      - "5173:5173"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store?sslmode=disable
-      - REDIS_URL=redis://redis:6379
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store?sslmode=disable
+      REDIS_URL: redis://redis:6379
     volumes:
-      - .:/server
+      - ./my-medusa-store:/server
       - /server/node_modules
     networks:
       - medusa_network
 
   storefront:
-    image: node:20-alpine
+    build: ./my-medusa-store-storefront
     container_name: medusa_storefront
-    working_dir: /storefront
+    restart: unless-stopped
     depends_on:
       - medusa
     ports:
       - "8000:8000"
-    volumes:
-      - ../my-medusa-store-storefront:/storefront
     environment:
-      MEDUSA_BACKEND_URL: http://medusa:9000
+      MEDUSA_BACKEND_URL: http://medusa_backend:9000
       NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_1896a89dabbd397f67ad3d4bbcb94c8cc84545fac9024443fe2c99b56089f98f
-    command: sh -lc "corepack enable && yarn install && yarn dev -p 8000 --hostname 0.0.0.0"
+    command: sh -c "corepack enable && yarn install && yarn dev -p 8000 --hostname 0.0.0.0"
+    volumes:
+      - ./my-medusa-store-storefront:/storefront
     networks:
       - medusa_network
 

@@ -3,54 +3,35 @@ pipeline {
 
     environment {
         REPO_URL = 'https://github.com/vetryselvan1307-design/medusa.git'
-        BACKEND_DIR = 'my-medusa-store'
-        STOREFRONT_DIR = 'my-medusa-store-storefront'
-        BACKEND_PORT = '9000'
-        FRONTEND_PORT = '5173'
+        PROJECT_ROOT = "${WORKSPACE}"  // root folder in Jenkins
     }
 
     stages {
-
-        stage('Checkout Code') {
+        stage('Checkout Latest Code') {
             steps {
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
 
-        stage('Stop Existing Containers') {
+        stage('Stop Old Containers') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    sh 'docker-compose down || true'
-                }
-                dir("${STOREFRONT_DIR}") {
-                    sh 'docker-compose down || true'
+                dir("${PROJECT_ROOT}") {
+                    sh 'docker-compose down'
                 }
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build New Images') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    sh 'docker-compose build'
-                }
-                dir("${STOREFRONT_DIR}") {
+                dir("${PROJECT_ROOT}") {
                     sh 'docker-compose build'
                 }
             }
         }
 
-        stage('Deploy Backend') {
+        stage('Deploy New Version') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    sh 'docker-compose up -d'
-                }
-            }
-        }
-
-        stage('Deploy Frontend') {
-            steps {
-                dir("${STOREFRONT_DIR}") {
-                    // Ensure frontend binds to 0.0.0.0
+                dir("${PROJECT_ROOT}") {
                     sh 'docker-compose up -d'
                 }
             }
@@ -59,10 +40,10 @@ pipeline {
 
     post {
         success {
-            echo "Backend and Frontend deployed successfully!"
+            echo "Deployment successful!"
         }
         failure {
-            echo "Deployment failed. Check logs."
+            echo "Deployment failed!"
         }
     }
 }
