@@ -1,36 +1,36 @@
 pipeline {
     agent any
+
     environment {
-        APP_NAME = 'medusa-app'
+        REPO_URL = 'https://github.com/vetryselvan1307-design/medusa.git'
     }
+
     stages {
-        stage('Checkout Latest Code') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/vetryselvan1307-design/medusa.git'
+                // Checkout latest code from main branch
+                git branch: 'main', url: "${REPO_URL}"
             }
         }
 
         stage('Stop Old Containers') {
             steps {
-                dir('my-medusa-store') {
-                    sh 'docker-compose down || true'
-                }
+                // Stop and remove existing containers (if any)
+                sh 'docker-compose down'
             }
         }
 
         stage('Build New Images') {
             steps {
-                dir('my-medusa-store') {
-                    sh 'docker-compose build'
-                }
+                // Build all Docker images defined in docker-compose.yml
+                sh 'docker-compose build'
             }
         }
 
         stage('Deploy New Version') {
             steps {
-                dir('my-medusa-store') {
-                    sh 'docker-compose up -d'
-                }
+                // Run containers in detached mode
+                sh 'docker-compose up -d'
             }
         }
     }
