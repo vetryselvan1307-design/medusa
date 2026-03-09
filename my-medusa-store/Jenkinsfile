@@ -16,22 +16,28 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${APP_NAME} ."
+                dir('my-medusa-store') {
+                    sh "docker build -t ${APP_NAME} ."
+                }
             }
         }
 
         stage('Stop Existing Container') {
             steps {
-                sh """
-                docker stop ${APP_NAME} || true
-                docker rm ${APP_NAME} || true
-                """
+                dir('my-medusa-store') {
+                    sh """
+                    docker stop ${APP_NAME} || true
+                    docker rm ${APP_NAME} || true
+                    """
+                }
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                sh "docker run -d -p ${PORT}:9000 --name ${APP_NAME} ${APP_NAME}"
+                dir('my-medusa-store') {
+                    sh "docker run -d -p ${PORT}:9000 --name ${APP_NAME} ${APP_NAME}"
+                }
             }
         }
     }
